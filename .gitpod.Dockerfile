@@ -1,7 +1,7 @@
 FROM gitpod/workspace-full
 
 RUN sudo apt-get update \
-    && sudo apt-get dist-upgrade \
+    && sudo apt-get dist-upgrade -y \
     && sudo apt-get install -y \
         strace \
     && sudo rm -rf /var/lib/apt/lists/* \
@@ -9,7 +9,6 @@ RUN sudo apt-get update \
     && brew upgrade \
     && brew install \
         lazygit \
-
 
 # Install custom tools, runtimes, etc.
 # For example "bastet", a command-line tetris clone:
