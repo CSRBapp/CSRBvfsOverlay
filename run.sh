@@ -1,3 +1,3 @@
 #!/bin/bash
 
-LD_PRELOAD=./CSRBvfsOverlay.so $*
+LD_PRELOAD=`pwd`/CSRBvfsOverlay.so $*
