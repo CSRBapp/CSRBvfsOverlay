@@ -1,0 +1,37 @@
+###
+
+while true ; do nc -l -p 1234 ; done
+./run.sh python3 test.py 2> /dev/tcp/127.0.0.1/1234
+
+###
+
+
+##################
+# stat() / fstat()
+##################
+
+https://stackoverflow.com/questions/5478780/c-and-ld-preload-open-and-open64-calls-intercepted-but-not-stat64
+
+Because the GNU libc implements open() and open64() as you'd expect (i.e.
+they're just dynamically linked symbols that you can hook into with
+LD_PRELOAD), but does something special with stat() and stat64().
+
+If you look at the symbols exported by libc (e.g. with nm -D /libc/libc.so.6),
+you'll see that it doesn't actually provide the symbols stat or stat64!
+
+Calls to these functions are wrapped - either at compile time (if possible) by
+inline functions in <sys/stat.h>, or (failing that) statically linked
+definitions provided by libc_nonshared.a.
+
+The actual dynamically linked functions which are called are __xstat() or
+__xstat64(); and these take an additional first argument, an integer, which is
+a version number indicating the layout of struct stat that is expected by the
+caller. Try hooking these instead.
+
+(The point of all this is to allow the dynamically linked libc to support
+binaries which use various incompatible layouts of struct stat and definitions
+of bits in mode_t; if you look in /usr/include/sys/stat.h you'll find a comment
+to this effect. fstat(), fstat64(), lstat(), lstat64() and mknod() are also
+affected in the same way.)
+
+###
