@@ -18,6 +18,8 @@ static ssize_t (*original_write)(int, const void *, size_t) = NULL;
 static int (*original_stat)(const char *, struct stat *) = NULL;
 static int (*original_fstat)(int, struct stat *) = NULL;
 static int (*original_lstat)(const char *, struct stat *) = NULL;
+static int (*original_fstatat)(int, const char *, struct stat *, int);
+
 
 void CSRBvfsOverlayInit(void) {
   static int initialised = 0;
@@ -89,5 +91,13 @@ int lstat(const char *pathname, struct stat *statbuf) {
   fprintf(stderr, "*** LSTAT(%s, %p)\n", pathname, statbuf);
   ret = (*original_lstat)(pathname, statbuf);
   fprintf(stderr, "*** LSTAT(%s, %p) RET:%d\n", pathname, statbuf, ret);
+  return ret;
+}
+
+int fstatat(int dirfd, const char *pathname, struct stat *statbuf, int flags) {
+  int ret;
+  fprintf(stderr, "*** FSTATAT(%d, %s, %p, %d)\n", dirfd, pathname, statbuf, flags);
+  ret = (*original_fstatat)(dirfd, pathname, statbuf, flags);
+  fprintf(stderr, "*** FSTATAT(%d, %s, %p, %d) RET:%d\n", dirfd, pathname, statbuf, flags, ret);
   return ret;
 }
