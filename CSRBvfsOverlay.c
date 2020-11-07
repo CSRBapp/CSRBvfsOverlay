@@ -15,8 +15,10 @@ static FILE *(*original_fopen)(const char *, const char *) = NULL;
 static int (*original_open)(const char *, int) = NULL;
 static ssize_t (*original_read)(int, void *, size_t) = NULL;
 static ssize_t (*original_write)(int, const void *, size_t) = NULL;
-static int (*original_stat)(const char *, struct stat *) = NULL;
-static int (*original_fstat)(int, struct stat *) = NULL;
+//static int (*original_stat)(const char *, struct stat *) = NULL;
+//static int (*original_fstat)(int, struct stat *) = NULL;
+static int (*original_xstat)(int ver, const char *, struct stat *) = NULL;
+static int (*original_fxstat)(int ver, int, struct stat *) = NULL;
 static int (*original_lstat)(const char *, struct stat *) = NULL;
 static int (*original_fstatat)(int, const char *, struct stat *, int);
 
@@ -27,14 +29,17 @@ void CSRBvfsOverlayInit(void) {
     return;
   initialised = 1;
 
-  fprintf(stderr, "*** INIT\n");
   original_fopen = dlsym(RTLD_NEXT, "fopen");
   original_open = dlsym(RTLD_NEXT, "open");
   original_read = dlsym(RTLD_NEXT, "read");
   original_write = dlsym(RTLD_NEXT, "write");
-  original_stat = dlsym(RTLD_NEXT, "stat");
-  original_fstat = dlsym(RTLD_NEXT, "fstat");
+  //original_stat = dlsym(RTLD_NEXT, "stat");
+  //original_fstat = dlsym(RTLD_NEXT, "fstat");
+  original_xstat = dlsym(RTLD_NEXT, "__xstat");
+  original_fxstat = dlsym(RTLD_NEXT, "__fxstat");
   original_lstat = dlsym(RTLD_NEXT, "lstat");
+  original_fstatat = dlsym(RTLD_NEXT, "fstatat");
+  fprintf(stderr, "*** INIT COMPLETE\n");
 }
 
 FILE *fopen(const char *path, const char *mode) {
@@ -48,6 +53,7 @@ FILE *fopen(const char *path, const char *mode) {
 
 int open(const char *pathname, int flags, ...) {
   int ret;
+  CSRBvfsOverlayInit();
   fprintf(stderr, "*** OPEN(%s, 0x%x)\n", pathname, flags);
   ret = (*original_open)(pathname, flags);
   fprintf(stderr, "*** OPEN(%s, 0x%x) RET:%d\n", pathname, flags, ret);
@@ -70,6 +76,7 @@ ssize_t write(int fd, const void *buf, size_t count) {
   return ret;
 }
 
+#if 0
 int stat(const char *pathname, struct stat *statbuf) {
   int ret;
   fprintf(stderr, "*** STAT(%s, %p)\n", pathname, statbuf);
@@ -83,6 +90,23 @@ int fstat(int fd, struct stat *statbuf) {
   fprintf(stderr, "*** FSTAT(%d, %p)\n", fd, statbuf);
   ret = (*original_fstat)(fd, statbuf);
   fprintf(stderr, "*** FSTAT(%d, %p) RET:%d\n", fd, statbuf, ret);
+  return ret;
+}
+#endif
+
+int __xstat(int ver, const char *pathname, struct stat *statbuf) {
+  int ret;
+  fprintf(stderr, "*** XSTAT(%d, %s, %p)\n", ver, pathname, statbuf);
+  ret = (*original_xstat)(ver, pathname, statbuf);
+  fprintf(stderr, "*** XSTAT(%d, %s, %p) RET:%d\n", ver, pathname, statbuf, ret);
+  return ret;
+}
+
+int __fxstat(int ver, int fd, struct stat *statbuf) {
+  int ret;
+  fprintf(stderr, "*** FXSTAT(%d, %d, %p)\n", ver, fd, statbuf);
+  ret = (*original_fxstat)(ver, fd, statbuf);
+  fprintf(stderr, "*** FXSTAT(%d, %d, %p) RET:%d\n", ver, fd, statbuf, ret);
   return ret;
 }
 
