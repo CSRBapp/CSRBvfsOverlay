@@ -2,5 +2,6 @@ image:
   file: .gitpod.Dockerfile
 
 tasks:
-  - init: 'echo "INIT"'
-    command: 'echo "START"'
+  - before: gp open CSRBvfsOverlay.c
+  - openMode: split-left
+    command: make
