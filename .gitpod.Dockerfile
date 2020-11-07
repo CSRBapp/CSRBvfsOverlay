@@ -3,7 +3,7 @@ FROM gitpod/workspace-full
 RUN sudo apt-get update \
     && sudo apt-get dist-upgrade -y \
     && sudo apt-get install -y \
-        strace \
+        strace netcat-openbsd \
     && sudo rm -rf /var/lib/apt/lists/* \
     && brew update \
     && brew upgrade \
