@@ -13,6 +13,8 @@
 
 static FILE *(*original_fopen)(const char *, const char *) = NULL;
 static int (*original_open)(const char *, int) = NULL;
+static int (*original_openat)(int, const char *, int) = NULL;
+static int (*original_openat64)(int, const char *, int) = NULL;
 static ssize_t (*original_read)(int, void *, size_t) = NULL;
 static ssize_t (*original_write)(int, const void *, size_t) = NULL;
 //static int (*original_stat)(const char *, struct stat *) = NULL;
@@ -31,6 +33,8 @@ void CSRBvfsOverlayInit(void) {
 
   original_fopen = dlsym(RTLD_NEXT, "fopen");
   original_open = dlsym(RTLD_NEXT, "open");
+  original_openat = dlsym(RTLD_NEXT, "openat");
+  original_openat64 = dlsym(RTLD_NEXT, "openat64");
   original_read = dlsym(RTLD_NEXT, "read");
   original_write = dlsym(RTLD_NEXT, "write");
   //original_stat = dlsym(RTLD_NEXT, "stat");
@@ -60,19 +64,37 @@ int open(const char *pathname, int flags, ...) {
   return ret;
 }
 
+int openat(int dirfd, const char *pathname, int flags, ...) {
+  int ret;
+  CSRBvfsOverlayInit();
+  fprintf(stderr, "*** OPENAT(%d, %s, 0x%x)\n", dirfd, pathname, flags);
+  ret = (*original_openat)(dirfd, pathname, flags);
+  fprintf(stderr, "*** OPENAT(%d, %s, 0x%x) RET:%d\n", dirfd, pathname, flags, ret);
+  return ret;
+}
+
+int openat64(int dirfd, const char *pathname, int flags, ...) {
+  int ret;
+  CSRBvfsOverlayInit();
+  fprintf(stderr, "*** OPENAT64(%d, %s, 0x%x)\n", dirfd, pathname, flags);
+  ret = (*original_openat64)(dirfd, pathname, flags);
+  fprintf(stderr, "*** OPENAT64(%d, %s, 0x%x) RET:%d\n", dirfd, pathname, flags, ret);
+  return ret;
+}
+
 ssize_t read(int fd, void *buf, size_t count) {
   ssize_t ret;
-  fprintf(stderr, "*** READ(%d, %p, %ld)\n", fd, buf, count);
+  //fprintf(stderr, "*** READ(%d, %p, %ld)\n", fd, buf, count);
   ret = (*original_read)(fd, buf, count);
-  fprintf(stderr, "*** READ(%d, %p, %ld) RET:%ld\n", fd, buf, count, ret);
+  //fprintf(stderr, "*** READ(%d, %p, %ld) RET:%ld\n", fd, buf, count, ret);
   return ret;
 }
 
 ssize_t write(int fd, const void *buf, size_t count) {
   ssize_t ret;
-  fprintf(stderr, "*** WRITE(%d, %p, %ld)\n", fd, buf, count);
+  //fprintf(stderr, "*** WRITE(%d, %p, %ld)\n", fd, buf, count);
   ret = (*original_write)(fd, buf, count);
-  fprintf(stderr, "*** WRITE(%d, %p, %ld) RET:%ld\n", fd, buf, count, ret);
+  //fprintf(stderr, "*** WRITE(%d, %p, %ld) RET:%ld\n", fd, buf, count, ret);
   return ret;
 }
 
