@@ -1,3 +1,5 @@
 #!/bin/bash
 
-LD_PRELOAD=`pwd`/CSRBvfsOverlay.so $*
+export LD_BIND_NOW=BIND
+export LD_PRELOAD=`pwd`/CSRBvfsOverlay.so
+$*
