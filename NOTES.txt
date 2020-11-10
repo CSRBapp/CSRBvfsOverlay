@@ -3,6 +3,9 @@
 while true ; do nc -l -p 1234 ; done
 ./run.sh python3 test.py 2> /dev/tcp/127.0.0.1/1234
 
+./run.sh python3 -c 'open("/tmp/asd/qwe","r+")'
+ltrace -f -S python3 -c 'open("/tmp/asd/qwe","r+")'
+
 ###
 
 
@@ -35,3 +38,4 @@ to this effect. fstat(), fstat64(), lstat(), lstat64() and mknod() are also
 affected in the same way.)
 
 ###
+
